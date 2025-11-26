@@ -11,6 +11,9 @@
     <!-- مكتبة jsPDF لتحويل الصور -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
+    <!-- مكتبة قراءة QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
     <!-- أيقونات Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -197,6 +200,71 @@
             border: 2px dashed #3b82f6;
         }
 
+        /* FAB Button for QR */
+        .qr-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            height: 54px; /* ارتفاع ثابت للشكل البيضاوي */
+            border-radius: 27px; /* نصف الارتفاع لجعل الحواف دائرية تماماً */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 22px; /* مساحة للنص */
+            gap: 12px; /* مسافة بين الأيقونة والنص */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 90;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .qr-fab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        .qr-fab:active {
+            transform: scale(0.96);
+        }
+
+        /* QR Modal */
+        #qr-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #qr-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #qr-reader {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        /* Customizing html5-qrcode scanner */
+        #qr-reader__scan_region {
+            background: transparent !important;
+        }
+        #qr-reader__dashboard_section_csr span, 
+        #qr-reader__dashboard_section_swaplink {
+            color: white !important;
+            text-decoration: none !important;
+        }
+
         /* إخفاء واجهة رفع الملفات الافتراضية */
         input[type="file"] { display: none; }
     </style>
@@ -208,6 +276,45 @@
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
+    </div>
+
+    <!-- زر QR العائم (تم تحديثه مع نص) -->
+    <div class="qr-fab group" onclick="toggleQRScanner()" title="مسح رمز QR">
+        <i data-lucide="qr-code" class="w-6 h-6 text-white group-hover:scale-110 transition-transform"></i>
+        <span>ماسح الباركود</span>
+    </div>
+
+    <!-- نافذة ماسح QR -->
+    <div id="qr-modal">
+        <div class="glass-panel p-6 w-full max-w-md relative mx-4 flex flex-col items-center">
+            <!-- زر الإغلاق -->
+            <button onclick="toggleQRScanner()" class="absolute top-4 left-4 text-white/50 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <h3 class="text-xl font-bold text-white mb-4 mt-2">ماسح الكود الذكي</h3>
+            
+            <div class="w-full bg-black/30 rounded-2xl overflow-hidden border border-white/10 mb-4 relative h-64 flex items-center justify-center">
+                <div id="qr-reader" class="w-full h-full"></div>
+                <!-- خط مسح متحرك -->
+                <div id="scan-line" class="absolute w-full h-0.5 bg-blue-500 top-0 left-0 shadow-[0_0_10px_#3b82f6] animate-[scan_2s_infinite_linear] hidden"></div>
+            </div>
+
+            <div id="qr-result-container" class="w-full hidden text-center">
+                <p class="text-xs text-white/50 mb-2">تم اكتشاف الرابط:</p>
+                <div class="bg-white/10 p-3 rounded-xl break-all text-sm text-blue-300 mb-4 border border-white/5 select-all">
+                    <span id="qr-result-text"></span>
+                </div>
+                <div class="flex gap-2">
+                    <a id="qr-visit-btn" href="#" target="_blank" class="apple-btn flex-1 py-2 rounded-lg text-center text-sm font-bold text-white">زيارة</a>
+                    <button onclick="restartScanner()" class="apple-btn px-4 py-2 rounded-lg text-white/70 hover:text-white">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <p id="qr-status" class="text-xs text-white/40 mt-2">وجه الكاميرا نحو الرمز</p>
+        </div>
     </div>
 
     <!-- ملصق إعلاني (إشعار آيفون مكبر) -->
@@ -313,7 +420,7 @@
                 <!-- زر التحويل -->
                 <button onclick="processFiles()" id="convert-btn" class="apple-btn w-full py-4 rounded-xl flex items-center justify-center gap-2 font-medium text-white shadow-lg primary-glow group disabled:opacity-50 disabled:cursor-not-allowed">
                     <i data-lucide="file-cog" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                    <span>تحويل وإنشاء الرابط</span>
+                    <span>تحويل الصور الى pdf</span>
                 </button>
 
                 <!-- قسم التنزيل والإرسال (يظهر بعد التحويل) -->
@@ -321,7 +428,7 @@
                     <!-- زر التحميل -->
                     <button onclick="downloadPDF()" class="apple-btn flex-[2] py-4 rounded-xl flex items-center justify-center gap-2 font-bold text-white bg-green-500/20 border-green-500/30 hover:border-green-500/50 success-glow group">
                         <i data-lucide="download" class="w-5 h-5 group-hover:translate-y-1 transition-transform"></i>
-                        <span>تحميل الملف للجهاز</span>
+                        <span>إعادة تحميل الملف</span>
                     </button>
                     
                     <!-- تم إزالة زر الإرسال اليدوي، وسيتم الإرسال تلقائياً في الخلفية -->
@@ -357,6 +464,87 @@
     <script>
         // تفعيل الأيقونات
         lucide.createIcons();
+
+        // --- منطق QR Code ---
+        let html5QrcodeScanner = null;
+        
+        function toggleQRScanner() {
+            const modal = document.getElementById('qr-modal');
+            
+            if (modal.classList.contains('active')) {
+                // إغلاق الماسح
+                modal.classList.remove('active');
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.stop().then(() => {
+                        html5QrcodeScanner.clear();
+                        document.getElementById('scan-line').classList.add('hidden');
+                    }).catch(err => console.error("Failed to stop QR scanner", err));
+                }
+            } else {
+                // فتح الماسح
+                modal.classList.add('active');
+                startScanner();
+            }
+        }
+
+        function startScanner() {
+            // إعادة تعيين واجهة النتائج
+            document.getElementById('qr-result-container').classList.add('hidden');
+            document.getElementById('qr-status').innerText = "وجه الكاميرا نحو الرمز";
+            document.getElementById('scan-line').classList.remove('hidden');
+
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error(err);
+                document.getElementById('qr-status').innerText = "تعذر الوصول للكاميرا";
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // إيقاف المسح عند النجاح
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.pause();
+            }
+            
+            playSuccess(); // صوت النجاح
+            document.getElementById('scan-line').classList.add('hidden');
+            document.getElementById('qr-status').innerText = "تم قراءة الرمز بنجاح";
+            
+            // عرض النتيجة
+            const resultContainer = document.getElementById('qr-result-container');
+            const resultText = document.getElementById('qr-result-text');
+            const visitBtn = document.getElementById('qr-visit-btn');
+            
+            resultContainer.classList.remove('hidden');
+            resultText.innerText = decodedText;
+            
+            if (decodedText.startsWith('http')) {
+                visitBtn.href = decodedText;
+                visitBtn.style.display = 'inline-block';
+            } else {
+                visitBtn.style.display = 'none';
+            }
+        }
+
+        function onScanFailure(error) {
+            // تجاهل الأخطاء المتكررة أثناء المسح
+        }
+
+        function restartScanner() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.resume();
+                document.getElementById('qr-result-container').classList.add('hidden');
+                document.getElementById('scan-line').classList.remove('hidden');
+                document.getElementById('qr-status').innerText = "وجه الكاميرا نحو الرمز";
+            }
+        }
 
         // --- نظام الصوت (Sound System) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -625,17 +813,20 @@
                 // 2. إظهار إشعار الخدمات الطلابية فوراً عند الانتهاء
                 showNotificationBanner();
                 
+                // 3. التحميل التلقائي (NEW)
+                downloadPDF();
+
                 // إظهار زر التحميل فقط
                 setTimeout(() => {
                     btn.classList.add('hidden'); // إخفاء زر التحويل
                     btn.disabled = false;
-                    btn.innerHTML = '<i data-lucide="file-cog" class="w-5 h-5"></i> <span>تحويل وإنشاء الرابط</span>';
+                    btn.innerHTML = '<i data-lucide="file-cog" class="w-5 h-5"></i> <span>تحويل الصور الى pdf</span>';
                     
                     const actionsDiv = document.getElementById('result-actions');
                     actionsDiv.classList.remove('hidden');
                     actionsDiv.classList.add('flex');
                     
-                    showToast('تم تجهيز الملف للتحميل', 'success');
+                    showToast('تم تنزيل الملف تلقائياً', 'success');
                 }, 800);
 
             } catch (error) {
@@ -748,6 +939,7 @@
             }, 3000);
         }
 
+        // تحريك الخلفية مع الماوس (Parallax)
         document.addEventListener('mousemove', (e) => {
             const orbs = document.querySelectorAll('.orb');
             const x = e.clientX / window.innerWidth;
@@ -755,6 +947,17 @@
             orbs[0].style.transform = `translate(${x * 20}px, ${y * 20}px)`;
             orbs[1].style.transform = `translate(${-x * 30}px, ${-y * 30}px)`;
         });
+
+        // تعريف الرسوم المتحركة للمسح في CSS (إضافة سريعة)
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes scan {
+                0% { top: 0; opacity: 0; }
+                50% { opacity: 1; }
+                100% { top: 100%; opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
 
     </script>
 </body>
