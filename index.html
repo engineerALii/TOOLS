@@ -200,23 +200,20 @@
             border: 2px dashed #3b82f6;
         }
 
-        /* FAB Button for QR - Modified to be Square Box */
+        /* FAB Button for QR - Reverted to Round Shape */
         .qr-fab {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 75px;  /* عرض ثابت */
-            height: 75px; /* ارتفاع ثابت مساوي للعرض (مربع) */
-            border-radius: 22px; /* حواف دائرية ناعمة (Squircle) */
+            width: 60px;  /* دائري */
+            height: 60px; 
+            border-radius: 50%; /* حواف دائرية كاملة */
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
-            flex-direction: column; /* ترتيب عمودي للأيقونة والنص */
             align-items: center;
             justify-content: center;
-            padding: 0;
-            gap: 4px; /* مسافة صغيرة بين الأيقونة والنص */
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -225,16 +222,11 @@
         }
         .qr-fab:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-4px);
+            transform: scale(1.1);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
         .qr-fab:active {
-            transform: scale(0.96);
-        }
-        .qr-fab span {
-            font-size: 0.65rem; /* خط صغير ليناسب المربع */
-            font-weight: 600;
-            white-space: nowrap;
+            transform: scale(0.95);
         }
 
         /* QR Modal */
@@ -260,9 +252,15 @@
             height: 100%;
             border-radius: 16px;
             overflow: hidden;
-            object-fit: cover;
         }
-        /* Customizing html5-qrcode scanner */
+        
+        /* Customizing html5-qrcode scanner to force square and cover */
+        #qr-reader video {
+            object-fit: cover; /* يجعل الفيديو يملأ المربع بالكامل */
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 16px;
+        }
         #qr-reader__scan_region {
             background: transparent !important;
         }
@@ -285,10 +283,9 @@
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- زر QR العائم (تصميم مربع) -->
+    <!-- زر QR العائم (تم إرجاعه دائري) -->
     <div class="qr-fab group" onclick="toggleQRScanner()" title="مسح رمز QR">
         <i data-lucide="qr-code" class="w-7 h-7 text-white group-hover:scale-110 transition-transform"></i>
-        <span>الماسح</span>
     </div>
 
     <!-- نافذة ماسح QR -->
