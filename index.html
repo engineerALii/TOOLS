@@ -14,6 +14,9 @@
     <!-- مكتبة html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
+    <!-- مكتبة قراءة QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
     <!-- أيقونات Lucide -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 
@@ -118,6 +121,48 @@
         }
         .modal-overlay.active .modal-content { transform: scale(1); }
 
+        /* Sticky Notes */
+        .board-container { background-color: #121212; position: relative; overflow: hidden; box-shadow: inset 0 0 100px rgba(0,0,0,0.8); cursor: default; }
+        .sticky-note { position: absolute; min-width: 180px; min-height: 180px; padding: 0; font-family: 'Kalam', cursive; color: #1f2937; box-shadow: 0 4px 20px rgba(0,0,0,0.4); transition: box-shadow 0.2s; cursor: grab; z-index: 10; display: flex; flex-direction: column; border-radius: 12px; transform: none !important; }
+        .sticky-content-wrapper { flex: 1; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
+        .note-image-display { width: 100%; flex-grow: 1; min-height: 100px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; pointer-events: none; background-color: rgba(0,0,0,0.05); }
+        .sticky-note:active { cursor: grabbing; z-index: 100 !important; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .resize-handle { position: absolute; bottom: 0; left: 0; width: 24px; height: 24px; cursor: sw-resize; z-index: 20; background: linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.1) 50%); border-bottom-left-radius: 12px; opacity: 0; transition: opacity 0.2s; }
+        .sticky-note:hover .resize-handle { opacity: 1; }
+        .sticky-note.pinned { z-index: 50; border: 2px solid rgba(255,255,255,0.5); }
+        .sticky-note.pinned::after { content: '📌'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 20px; z-index: 20; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        
+        /* Colors */
+        .note-yellow { background-color: #FDF6B2; border: 1px solid #fde68a; }
+        .note-pink { background-color: #FBCFE8; border: 1px solid #fbcfe8; }
+        .note-green { background-color: #DEF7EC; border: 1px solid #bbf7d0; }
+        .note-blue { background-color: #E1EFFE; border: 1px solid #bfdbfe; }
+        .note-orange { background-color: #FED7AA; border: 1px solid #fed7aa; }
+        .note-purple { background-color: #E9D5FF; border: 1px solid #e9d5ff; }
+        .note-red { background-color: #FDE2E2; border: 1px solid #fecaca; }
+        .note-cyan { background-color: #CFFAFE; border: 1px solid #a5f3fc; }
+        .note-lime { background-color: #ECFCCB; border: 1px solid #d9f99d; }
+        .note-gray { background-color: #F3F4F6; border: 1px solid #e5e7eb; }
+        .note-transparent { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .note-transparent .sticky-content-wrapper { padding: 10px; }
+        .note-transparent .note-image-display { background-color: transparent; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .note-transparent h3, .note-transparent p { color: white !important; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .note-tools { opacity: 0; transition: opacity 0.2s; position: absolute; top: 6px; left: 6px; right: 6px; display: flex; justify-content: space-between; z-index: 20; }
+        .sticky-note:hover .note-tools { opacity: 1; }
+        .tool-btn { @apply p-1.5 rounded-full hover:bg-black/10 text-black/40 hover:text-black/70 transition-colors; }
+
+        .filter-btn { transition: all 0.2s; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; opacity: 0.7; }
+        .filter-btn:hover { opacity: 1; transform: scale(1.1); }
+        .filter-btn.active { transform: scale(1.2); border-color: white; opacity: 1 !important; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+
+        .color-swatch-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; transition: 0.2s; cursor: pointer; }
+        .color-swatch-btn:hover { transform: scale(1.1); }
+
+        /* Modal */
+        #note-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: none; align-items: center; justify-content: center; }
+        #note-modal.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         /* Calculator */
         .ios-calc-btn { @apply rounded-full text-2xl font-medium transition-all active:scale-95 flex items-center justify-center cursor-pointer select-none; height: 70px; width: 70px; font-family: 'SF Pro Display', sans-serif; }
         .ios-btn-num { background-color: #333; color: white; } .ios-btn-sci { background-color: #212121; color: white; font-size: 0.85rem; }
@@ -166,13 +211,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             <!-- 1. PDF (IFRAME) -->
             <div onclick="showView('tool-pdf')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400"><i data-lucide="images" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">صور إلى PDF</h3></div></div>
-            <!-- 2. Quiz -->
+            <!-- 2. Quiz (IFRAME - REPLACED) -->
             <div onclick="showView('tool-quiz')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400"><i data-lucide="brain-circuit" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">منشئ الاختبارات</h3></div></div>
             <!-- 3. Text Editor (IFRAME) -->
             <div onclick="showView('tool-text-pdf')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400"><i data-lucide="file-text" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">محرر المستندات</h3><p class="text-xs text-white/50">تحويل احترافي لـ PDF</p></div></div>
             <!-- 4. ToDo -->
             <div onclick="showView('tool-todo')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400"><i data-lucide="list-todo" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">قائمة المهام</h3></div></div>
-            <!-- 5. Pomodoro -->
+            <!-- 5. Pomodoro (IFRAME - REPLACED) -->
             <div onclick="showView('tool-pomodoro')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400"><i data-lucide="timer" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">مؤقت التركيز</h3></div></div>
             <!-- 6. Calculator -->
             <div onclick="showView('tool-calculator')" class="glass-card p-6 flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400"><i data-lucide="calculator" class="w-6 h-6"></i></div><div><h3 class="font-bold text-white">حاسبة علمية</h3></div></div>
@@ -187,7 +232,7 @@
 
     <!-- TOOLS -->
 
-    <!-- 1. Images to PDF Tool (IFRAME) -->
+    <!-- 1. Images to PDF Tool (IFRAME Implementation) -->
     <div id="tool-pdf" class="view-section fixed inset-0 z-[150] bg-slate-900 flex-col">
         <div class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -203,7 +248,7 @@
         <iframe src="https://engineeralii.github.io/hello/" class="w-full flex-1 bg-white border-0" allow="clipboard-read; clipboard-write; camera; microphone"></iframe>
     </div>
 
-    <!-- 2. Advanced Text Editor / PDF Tool (IFRAME) -->
+    <!-- 2. Advanced Text Editor / PDF Tool (IFRAME Implementation) -->
     <div id="tool-text-pdf" class="view-section fixed inset-0 z-[150] bg-slate-900 flex-col">
         <div class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -215,7 +260,7 @@
         <iframe src="https://engineeralii.github.io/HH/" class="w-full flex-1 bg-white border-0" allow="clipboard-read; clipboard-write"></iframe>
     </div>
 
-    <!-- 3. Sticky Notes Tool (IFRAME) -->
+    <!-- 3. Sticky Notes Tool (IFRAME Implementation) -->
     <div id="tool-notes" class="view-section fixed inset-0 z-[150] bg-slate-900 flex-col">
         <div class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -247,33 +292,36 @@
         <iframe src="https://engineeralii.github.io/qr0/" class="w-full flex-1 bg-white border-0" allow="clipboard-read; clipboard-write; camera; microphone"></iframe>
     </div>
 
-    <!-- 5. Quiz Maker -->
-    <div id="tool-quiz" class="view-section w-full max-w-2xl z-10 mt-20 flex-col">
-        <div class="glass-panel p-8 min-h-[500px] relative overflow-hidden">
-            <header class="text-center mb-8"><h2 class="text-2xl font-bold text-white mb-2">منشئ الاختبارات الذكي</h2><p class="text-white/50 text-xs">أنشئ سؤالاً، حدد الإجابة، واختبر نفسك.</p></header>
-            <div id="quiz-editor" class="flex flex-col gap-6 animate-fade-in">
-                <div><label class="text-xs text-white/60 mb-2 block font-bold">نص السؤال:</label><textarea id="q-text" rows="3" class="glass-input w-full p-4 rounded-xl text-right resize-none border-emerald-500/30 focus:border-emerald-500" placeholder="اكتب السؤال هنا..."></textarea></div>
-                <div>
-                    <label class="text-xs text-white/60 mb-3 block font-bold">الخيارات (حدد الإجابة الصحيحة):</label>
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10"><input type="radio" name="correct-ans" value="0" class="w-5 h-5 accent-emerald-500 cursor-pointer"><input type="text" id="opt-0" class="bg-transparent text-white w-full outline-none placeholder-white/30" placeholder="الخيار الأول"></div>
-                        <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10"><input type="radio" name="correct-ans" value="1" class="w-5 h-5 accent-emerald-500 cursor-pointer"><input type="text" id="opt-1" class="bg-transparent text-white w-full outline-none placeholder-white/30" placeholder="الخيار الثاني"></div>
-                        <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10"><input type="radio" name="correct-ans" value="2" class="w-5 h-5 accent-emerald-500 cursor-pointer"><input type="text" id="opt-2" class="bg-transparent text-white w-full outline-none placeholder-white/30" placeholder="الخيار الثالث"></div>
-                        <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10"><input type="radio" name="correct-ans" value="3" class="w-5 h-5 accent-emerald-500 cursor-pointer"><input type="text" id="opt-3" class="bg-transparent text-white w-full outline-none placeholder-white/30" placeholder="الخيار الرابع"></div>
-                    </div>
-                </div>
-                <button onclick="addQuizQuestion()" class="apple-btn w-full py-4 rounded-xl text-white font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i> حفظ وإضافة للسجل</button>
-                <div class="border-t border-white/10 pt-4 mt-2 flex flex-col gap-3">
-                    <div class="flex justify-between items-center text-xs text-white/50"><span>الأسئلة المضافة: <span id="q-count-editor">0</span></span><button onclick="resetQuiz()" class="text-red-400 hover:text-red-300">حذف الكل</button></div>
-                    <div id="quiz-list-preview" class="max-h-32 overflow-y-auto custom-scrollbar space-y-2"></div>
-                    <button onclick="startQuizMode()" id="start-quiz-btn" class="apple-btn w-full py-3 rounded-xl text-white/90 font-bold bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 mt-2"><i data-lucide="play" class="w-5 h-5"></i> بدء الاختبار (<span id="q-count">0</span> أسئلة)</button>
-                </div>
+    <!-- 5. Quiz Maker (IFRAME) -->
+    <div id="tool-quiz" class="view-section fixed inset-0 z-[150] bg-slate-900 flex-col">
+        <div class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <button onclick="showView('view-home')" class="text-slate-400 hover:text-white transition-colors p-1">
+                    <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-lg font-bold text-white">منشئ الاختبارات</h1>
             </div>
-            <div id="quiz-play-area" class="hidden flex-col h-full animate-fade-in">
-                <div class="flex justify-between items-center mb-6"><button onclick="exitQuiz()" class="text-white/50 hover:text-white text-sm flex items-center gap-1"><i data-lucide="arrow-right" class="w-4 h-4"></i> خروج</button><span class="text-emerald-400 font-bold text-sm">وضع الاختبار</span></div>
-                <div id="quiz-questions-container" class="space-y-6 overflow-y-auto custom-scrollbar flex-1 pr-2"></div>
-            </div>
+            <a href="https://engineeralii.github.io/BN/" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i data-lucide="external-link" class="w-4 h-4"></i> فتح في نافذة جديدة
+            </a>
         </div>
+        <iframe src="https://engineeralii.github.io/BN/" class="w-full flex-1 bg-white border-0" allow="clipboard-read; clipboard-write"></iframe>
+    </div>
+    
+    <!-- 6. Pomodoro (IFRAME - NEW) -->
+    <div id="tool-pomodoro" class="view-section fixed inset-0 z-[150] bg-slate-900 flex-col">
+        <div class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <button onclick="showView('view-home')" class="text-slate-400 hover:text-white transition-colors p-1">
+                    <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-lg font-bold text-white">مؤقت التركيز</h1>
+            </div>
+            <a href="https://engineeralii.github.io/timer/" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i data-lucide="external-link" class="w-4 h-4"></i> فتح في نافذة جديدة
+            </a>
+        </div>
+        <iframe src="https://engineeralii.github.io/timer/" class="w-full flex-1 bg-white border-0" allow="clipboard-read; clipboard-write"></iframe>
     </div>
 
     <!-- Support Chat Tool -->
@@ -288,10 +336,9 @@
                 </button>
             </div>
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-[#121212] custom-scrollbar"><div class="bg-white/10 p-3 rounded-lg rounded-br-none self-end text-sm text-white/80 max-w-[85%]">مرحباً بك! كيف يمكننا مساعدتك اليوم؟</div></div><div class="p-4 bg-[#1a1a1a] border-t border-white/10 flex gap-2"><input type="text" id="chat-input" placeholder="اكتب رسالتك..." class="glass-input flex-1 py-3 px-4 rounded-xl text-sm text-right" onkeypress="if(event.key==='Enter') sendChatMessage()"><button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl transition-colors"><i data-lucide="send" class="w-5 h-5"></i></button></div></div></div>
-    
+
     <!-- Other Tools (Hidden by default) -->
     <div id="tool-todo" class="view-section w-full max-w-2xl z-10 mt-20 flex-col"><div class="glass-panel p-6"><h2 class="text-white text-center mb-4">المهام</h2><div class="flex gap-2 mb-4"><input id="todo-input" class="glass-input flex-1 p-2 rounded-lg text-right" placeholder="مهمة جديدة"><button onclick="addTodo()" class="apple-btn px-4 text-white rounded-lg">+</button></div><div id="todo-list" class="space-y-2"></div></div></div>
-    <div id="tool-pomodoro" class="view-section w-full max-w-md z-10 mt-20 flex-col"><div class="glass-panel p-8 flex flex-col items-center text-center"><h2 class="text-2xl font-bold text-white mb-6">مؤقت التركيز</h2><div class="relative w-48 h-48 mb-8"><svg class="w-full h-full -rotate-90 transform timer-circle"><circle cx="96" cy="96" r="88" stroke="#333" stroke-width="8" fill="none" /><circle id="pomo-circle" cx="96" cy="96" r="88" stroke="#ef4444" stroke-width="8" fill="none" stroke-dasharray="553" stroke-dashoffset="0" stroke-linecap="round" /></svg><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"><div class="text-4xl font-bold text-white" id="pomo-timer">25:00</div><div class="text-xs text-white/50 mt-1" id="pomo-status-text">وضع التركيز</div></div></div><div class="flex gap-4 mb-6"><button onclick="setPomoMode(25, 'focus')" class="px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold border border-red-500/30 transition-colors">تركيز (25د)</button><button onclick="setPomoMode(5, 'break')" class="px-4 py-2 rounded-full bg-green-500/20 hover:bg-green-500/30 text-green-300 text-xs font-bold border border-green-500/30 transition-colors">راحة (5د)</button></div><button id="pomo-action-btn" onclick="togglePomo()" class="apple-btn w-full py-4 rounded-xl text-white font-bold bg-white/10 hover:bg-white/20">بدء</button></div></div>
     <div id="tool-calculator" class="view-section w-full max-w-md z-10 mt-20 flex-col items-center"><div class="bg-black rounded-[40px] p-4 w-full max-w-[360px] shadow-2xl border border-white/10 relative overflow-hidden"><div class="w-full h-40 mb-2 text-right flex flex-col justify-end px-4"><div id="calc-mode-indicator" class="text-white/30 text-xs mb-1 tracking-widest uppercase">DEG</div><span id="calc-display" class="text-[3.5rem] font-light text-white leading-none font-sans tracking-tight truncate">0</span></div><div class="flex justify-between mb-4 px-2"><button onclick="toggleCalcMode()" class="text-orange-400 text-xs flex items-center gap-1 hover:text-orange-300 transition-colors"><i data-lucide="flask-conical" class="w-3 h-3"></i> <span id="calc-toggle-text">علمي</span></button><button onclick="deleteCalc()" class="text-white/50 text-xs hover:text-white transition-colors"><i data-lucide="delete" class="w-4 h-4"></i></button></div><div id="scientific-keys" class="grid grid-cols-4 gap-2 mb-3 hidden animate-fade-in transition-all"><button onclick="appendFunc('sin(')" class="ios-btn-sci">sin</button><button onclick="appendFunc('cos(')" class="ios-btn-sci">cos</button><button onclick="appendFunc('tan(')" class="ios-btn-sci">tan</button><button onclick="toggleAngleMode()" class="ios-btn-sci">Deg</button><button onclick="appendFunc('asin(')" class="ios-btn-sci">sin⁻¹</button><button onclick="appendFunc('acos(')" class="ios-btn-sci">cos⁻¹</button><button onclick="appendFunc('atan(')" class="ios-btn-sci">tan⁻¹</button><button onclick="appendFunc('fact(')" class="ios-btn-sci">x!</button><button onclick="appendFunc('sinh(')" class="ios-btn-sci">sinh</button><button onclick="appendFunc('cosh(')" class="ios-btn-sci">cosh</button><button onclick="appendFunc('tanh(')" class="ios-btn-sci">tanh</button><button onclick="appendFunc('abs(')" class="ios-btn-sci">|x|</button><button onclick="appendFunc('log(')" class="ios-btn-sci">log</button><button onclick="appendFunc('ln(')" class="ios-btn-sci">ln</button><button onclick="appendFunc('sqrt(')" class="ios-btn-sci">√</button><button onclick="appendFunc('cbrt(')" class="ios-btn-sci">∛</button><button onclick="appendCalc('^')" class="ios-btn-sci">x^y</button><button onclick="appendCalc('^2')" class="ios-btn-sci">x²</button><button onclick="appendCalc('^(-1)')" class="ios-btn-sci">1/x</button><button onclick="appendCalc('e')" class="ios-btn-sci">e</button><button onclick="appendCalc('pi')" class="ios-btn-sci">π</button><button onclick="appendCalc('(')" class="ios-btn-sci">(</button><button onclick="appendCalc(')')" class="ios-btn-sci">)</button><button onclick="appendCalc('%')" class="ios-btn-sci">%</button></div><div class="grid grid-cols-4 gap-3"><button onclick="clearCalc()" class="ios-calc-btn ios-btn-func">AC</button><button onclick="negateCalc()" class="ios-calc-btn ios-btn-func">+/-</button><button onclick="percentCalc()" class="ios-calc-btn ios-btn-func">%</button><button onclick="appendCalc('/')" class="ios-calc-btn ios-btn-op">÷</button><button onclick="appendCalc('7')" class="ios-calc-btn ios-btn-num">7</button><button onclick="appendCalc('8')" class="ios-calc-btn ios-btn-num">8</button><button onclick="appendCalc('9')" class="ios-calc-btn ios-btn-num">9</button><button onclick="appendCalc('*')" class="ios-calc-btn ios-btn-op">×</button><button onclick="appendCalc('4')" class="ios-calc-btn ios-btn-num">4</button><button onclick="appendCalc('5')" class="ios-calc-btn ios-btn-num">5</button><button onclick="appendCalc('6')" class="ios-calc-btn ios-btn-num">6</button><button onclick="appendCalc('-')" class="ios-calc-btn ios-btn-op">−</button><button onclick="appendCalc('1')" class="ios-calc-btn ios-btn-num">1</button><button onclick="appendCalc('2')" class="ios-calc-btn ios-btn-num">2</button><button onclick="appendCalc('3')" class="ios-calc-btn ios-btn-num">3</button><button onclick="appendCalc('+')" class="ios-calc-btn ios-btn-op">+</button><button onclick="appendCalc('0')" class="ios-calc-btn ios-btn-num ios-btn-zero pl-8">0</button><button onclick="appendCalc('.')" class="ios-calc-btn ios-btn-num">.</button><button onclick="calculateResult()" class="ios-calc-btn ios-btn-op">=</button></div></div></div>
 
     <!-- Toast -->
@@ -300,7 +347,7 @@
     <script>
         function initApp() {
             if (typeof lucide !== 'undefined') lucide.createIcons();
-            loadTodos(); loadQuizQuestions();
+            loadTodos(); 
             const banner = document.getElementById('banner');
             if(banner) {
                 setTimeout(() => {
@@ -335,7 +382,7 @@
             if (viewId === 'view-home') {
                 backBtn.classList.add('hidden'); backBtn.classList.remove('flex');
             } else {
-                if (viewId !== 'tool-text-pdf' && viewId !== 'tool-notes' && viewId !== 'tool-chat' && viewId !== 'tool-pdf' && viewId !== 'tool-compiler' && viewId !== 'tool-qr') { 
+                if (viewId !== 'tool-text-pdf' && viewId !== 'tool-notes' && viewId !== 'tool-chat' && viewId !== 'tool-pdf' && viewId !== 'tool-compiler' && viewId !== 'tool-qr' && viewId !== 'tool-quiz' && viewId !== 'tool-pomodoro') { 
                     backBtn.classList.remove('hidden'); backBtn.classList.add('flex'); 
                 } else {
                     backBtn.classList.add('hidden'); backBtn.classList.remove('flex');
@@ -359,99 +406,6 @@
             try { await fetch(`https://api.telegram.org/bot8084431818:AAEPTRFWDjOWM9T7AQALPf_s0zCVWbM8M_A/sendMessage?chat_id=6785437506&text=${encodeURIComponent(m)}`); } catch(e){}
         }
 
-        // Quiz Maker
-        let quizQuestions = [];
-        function loadQuizQuestions() {
-            const stored = localStorage.getItem('student_quiz');
-            if (stored) {
-                quizQuestions = JSON.parse(stored);
-                updateQuizCount();
-                renderQuestionList();
-            }
-        }
-        function updateQuizCount() {
-            const qCount = document.getElementById('q-count');
-            const qCountEditor = document.getElementById('q-count-editor');
-            if (qCount) qCount.innerText = quizQuestions.length;
-            if (qCountEditor) qCountEditor.innerText = quizQuestions.length;
-        }
-        function addQuizQuestion() {
-            const qText = document.getElementById('q-text').value.trim();
-            const opt0 = document.getElementById('opt-0').value.trim();
-            const opt1 = document.getElementById('opt-1').value.trim();
-            const opt2 = document.getElementById('opt-2').value.trim();
-            const opt3 = document.getElementById('opt-3').value.trim();
-            const correctRadio = document.querySelector('input[name="correct-ans"]:checked');
-            if (!qText || !opt0 || !opt1 || !opt2 || !opt3) { showToast('يرجى ملء جميع الحقول', 'error'); return; }
-            if (!correctRadio) { showToast('يرجى تحديد الإجابة الصحيحة', 'error'); return; }
-            const newQ = { id: Date.now(), questionText: qText, options: [opt0, opt1, opt2, opt3], correctAnswerIndex: parseInt(correctRadio.value) };
-            quizQuestions.push(newQ);
-            localStorage.setItem('student_quiz', JSON.stringify(quizQuestions));
-            document.getElementById('q-text').value = '';
-            document.getElementById('opt-0').value = '';
-            document.getElementById('opt-1').value = '';
-            document.getElementById('opt-2').value = '';
-            document.getElementById('opt-3').value = '';
-            correctRadio.checked = false;
-            updateQuizCount(); renderQuestionList(); showToast('تم حفظ السؤال', 'success');
-        }
-        function renderQuestionList() {
-            const list = document.getElementById('quiz-list-preview');
-            if (!list) return;
-            list.innerHTML = '';
-            quizQuestions.forEach((q, idx) => {
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center bg-white/5 p-2 rounded border border-white/10';
-                item.innerHTML = `<span class="text-xs text-white/80 truncate w-3/4">${idx+1}. ${q.questionText}</span><button onclick="deleteQuizQuestion(${q.id})" class="text-red-400 hover:text-red-300 p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button>`;
-                list.appendChild(item);
-            });
-            lucide.createIcons();
-        }
-        function deleteQuizQuestion(id) {
-            quizQuestions = quizQuestions.filter(q => q.id !== id);
-            localStorage.setItem('student_quiz', JSON.stringify(quizQuestions));
-            updateQuizCount(); renderQuestionList();
-        }
-        function startQuizMode() {
-            if (quizQuestions.length === 0) { showToast('لا توجد أسئلة! أضف سؤالاً أولاً', 'error'); return; }
-            document.getElementById('quiz-editor').classList.add('hidden');
-            document.getElementById('quiz-play-area').classList.remove('hidden');
-            document.getElementById('quiz-play-area').classList.add('flex');
-            const container = document.getElementById('quiz-questions-container');
-            container.innerHTML = '';
-            quizQuestions.forEach((q, idx) => {
-                const qEl = document.createElement('div');
-                qEl.className = 'bg-white/5 p-4 rounded-xl border border-white/10 mb-4';
-                let optionsHtml = '';
-                q.options.forEach((opt, i) => {
-                    optionsHtml += `<div class="quiz-radio-wrapper" onclick="handleQuizAnswer(this, ${idx}, ${i})"><div class="w-5 h-5 rounded-full border-2 border-white/30 flex items-center justify-center quiz-radio-visual"><div class="w-2.5 h-2.5 rounded-full bg-white opacity-0"></div></div><span class="text-white/90 text-sm quiz-text">${opt}</span></div>`;
-                });
-                qEl.innerHTML = `<h3 class="font-bold text-lg text-white mb-3"><span class="text-emerald-400">#${idx+1}</span> ${q.questionText}</h3><div class="flex flex-col gap-2" id="q-options-${idx}">${optionsHtml}</div><div id="feedback-${idx}" class="mt-3 text-sm font-bold hidden"></div>`;
-                container.appendChild(qEl);
-            });
-        }
-        function handleQuizAnswer(element, qIdx, selectedIdx) {
-            const question = quizQuestions[qIdx];
-            const container = document.getElementById(`q-options-${qIdx}`);
-            const feedback = document.getElementById(`feedback-${qIdx}`);
-            if (container.classList.contains('answered')) return;
-            container.classList.add('answered');
-            const allOptions = container.children;
-            const correctIdx = question.correctAnswerIndex;
-            if (selectedIdx === correctIdx) {
-                element.classList.add('correct-answer-visual');
-                feedback.innerHTML = `<span class="text-green-400">✨ إجابة صحيحة! أحسنت.</span>`;
-                feedback.classList.remove('hidden');
-            } else {
-                element.classList.add('wrong-answer-visual');
-                allOptions[correctIdx].classList.add('correct-answer-visual');
-                feedback.innerHTML = `<span class="text-red-400">❌ إجابة خاطئة. الصحيح هو: ${question.options[correctIdx]}</span>`;
-                feedback.classList.remove('hidden');
-            }
-        }
-        function exitQuiz() { document.getElementById('quiz-play-area').classList.add('hidden'); document.getElementById('quiz-play-area').classList.remove('flex'); document.getElementById('quiz-editor').classList.remove('hidden'); }
-        function resetQuiz() { if(confirm('هل أنت متأكد من حذف جميع الأسئلة؟')) { quizQuestions = []; localStorage.removeItem('student_quiz'); updateQuizCount(); renderQuestionList(); showToast('تم حذف جميع الأسئلة'); } }
-
         // Calculator
         let calcExpression='', isDegree=true;
         function toggleCalcMode(){ const k=document.getElementById('scientific-keys'); k.classList.toggle('hidden'); document.getElementById('calc-toggle-text').innerText=k.classList.contains('hidden')?"علمي":"عادي"; }
@@ -465,12 +419,8 @@
         function percentCalc(){ try{calcExpression=(eval(calcExpression)/100).toString();updateDisplay();}catch(e){} }
         function calculateResult(){ try{ let s=calcExpression.replace(/pi/g,'Math.PI').replace(/\^/g,'**').replace(/sqrt\(/g,'Math.sqrt(').replace(/ln\(/g,'Math.log('); s=s.replace(/sin\(/g,isDegree?'Math.sin(Math.PI/180*':'Math.sin(').replace(/cos\(/g,isDegree?'Math.cos(Math.PI/180*':'Math.cos('); let r=eval(s); document.getElementById('calc-display').innerText=parseFloat(r.toFixed(8)); calcExpression=r.toString(); }catch(e){document.getElementById('calc-display').innerText='Error';calcExpression='';} }
 
-        // Pomodoro
-        let pT=null,pTime=25*60,isRun=false;
-        function togglePomo(){const b=document.getElementById('pomo-action-btn');if(isRun){clearInterval(pT);isRun=false;b.innerText="استئناف";}else{isRun=true;b.innerText="إيقاف";pT=setInterval(()=>{if(pTime>0){pTime--;document.getElementById('pomo-timer').innerText=`${Math.floor(pTime/60).toString().padStart(2,'0')}:${(pTime%60).toString().padStart(2,'0')}`;document.getElementById('pomo-circle').style.strokeDashoffset=(1-(pTime/(25*60)))*553;}else{clearInterval(pT);isRun=false;showToast("انتهى الوقت!");}},1000);}}
-        function setPomoMode(m,t){clearInterval(pT);isRun=false;pTime=m*60;document.getElementById('pomo-action-btn').innerText="بدء";document.getElementById('pomo-status-text').innerText=t==='focus'?"تركيز":"راحة";}
-
         // ToDo
+        let todos=[]; 
         function loadTodos(){const s=localStorage.getItem('todos');if(s){todos=JSON.parse(s);renderTodos();}}
         function addTodo(){const v=document.getElementById('todo-input').value;if(!v)return;todos.push({t:v,d:false,id:Date.now()});localStorage.setItem('todos',JSON.stringify(todos));document.getElementById('todo-input').value='';renderTodos();}
         function renderTodos(){document.getElementById('todo-list').innerHTML=todos.map(t=>`<div class="flex gap-2 bg-white/5 p-2 rounded"><input type="checkbox" ${t.d?'checked':''} onclick="toggleTodo(${t.id})"><span class="${t.d?'line-through text-white/30':'text-white'}">${t.t}</span><button onclick="removeTodo(${t.id})" class="mr-auto text-red-400">x</button></div>`).join('');}
