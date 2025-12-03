@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>منصة الخدمات الطلابية</title>
     
-    <!-- أيقونة الموقع (Favicon) -->
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/9321/9321656.png">
-
     <!-- المكتبات -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -125,6 +122,33 @@
 
         /* --- عام --- */
         .glass-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; }
+
+        /* --- تنسيقات الألعاب --- */
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .game-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border-color: rgba(232, 121, 249, 0.5);
+            box-shadow: 0 10px 30px rgba(232, 121, 249, 0.1);
+        }
+        .game-icon-wrapper {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #c084fc, #a855f7);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -133,20 +157,17 @@
 
     <!-- الشاشة الرئيسية -->
     <div id="dashboard" class="h-full flex flex-col items-center justify-center text-center p-6">
-        <!-- تم إزالة الشعار -->
-
         <!-- العنوان المتحرك -->
         <div class="mb-6 typewriter-container">
             <h1 id="typewriter-text" class="text-5xl md:text-7xl font-bold font-brand text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500 leading-tight pb-2"></h1>
         </div>
         
-        <!-- الساعة (12 ساعة) -->
+        <!-- الساعة -->
         <div id="clock" class="text-8xl font-light font-mono text-white/90 mb-2 tracking-tighter" style="font-variant-numeric: tabular-nums;">09:00</div>
         <div id="date" class="text-blue-200 text-base bg-blue-500/10 px-5 py-1.5 rounded-full border border-blue-500/20 mb-10">...</div>
 
-        <!-- قسم الحقوق والاسم (تحت الساعة) -->
+        <!-- قسم الحقوق والاسم -->
         <div class="flex flex-col items-center gap-4 mb-20">
-            <!-- زر الحقوق -->
             <a href="https://instagram.com/c4man" target="_blank" class="group relative flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-md shadow-xl">
                 <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="w-10 h-10 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
@@ -157,8 +178,6 @@
                     <h3 class="text-xl font-bold text-white tracking-wide font-sans leading-none">C4MAN</h3>
                 </div>
             </a>
-            
-            <!-- الاسم المتحرك -->
             <p class="animated-name text-blue-200/80 text-sm font-medium tracking-wide">المُهندس والمطور علي عبدمسلم</p>
         </div>
     </div>
@@ -170,22 +189,25 @@
 
     <!-- القائمة المنبثقة -->
     <div id="app-drawer" class="app-drawer">
-        <!-- 1. لوحة الرسم (بديل المحرر) -->
         <div class="app-icon" onclick="openTool('tool-whiteboard')"><div class="icon-box bg-amber-500/20 border-amber-500/30"><i data-lucide="pen-tool" class="w-8 h-8 text-amber-400"></i></div><span class="app-label">الرسم</span></div>
-        
         <div class="app-icon" onclick="openTool('tool-img-pdf')"><div class="icon-box bg-blue-500/20 border-blue-500/30"><i data-lucide="images" class="w-8 h-8 text-blue-400"></i></div><span class="app-label">صور PDF</span></div>
         <div class="app-icon" onclick="openTool('tool-notes')"><div class="icon-box bg-yellow-500/20 border-yellow-500/30"><i data-lucide="sticky-note" class="w-8 h-8 text-yellow-400"></i></div><span class="app-label">الملاحظات</span></div>
         <div class="app-icon" onclick="openTool('tool-todo')"><div class="icon-box bg-purple-500/20 border-purple-500/30"><i data-lucide="check-square" class="w-8 h-8 text-purple-400"></i></div><span class="app-label">المهام</span></div>
+        
+        <!-- أيقونة الترفيه الجديدة -->
+        <div class="app-icon" onclick="openTool('tool-games')"><div class="icon-box bg-fuchsia-500/20 border-fuchsia-500/30"><i data-lucide="gamepad-2" class="w-8 h-8 text-fuchsia-400"></i></div><span class="app-label">ترفيه</span></div>
+        
         <div class="app-icon" onclick="openTool('tool-quiz')"><div class="icon-box bg-emerald-500/20 border-emerald-500/30"><i data-lucide="brain-circuit" class="w-8 h-8 text-emerald-400"></i></div><span class="app-label">اختبارات</span></div>
         <div class="app-icon" onclick="openTool('tool-calc')"><div class="icon-box bg-cyan-500/20 border-cyan-500/30"><i data-lucide="calculator" class="w-8 h-8 text-cyan-400"></i></div><span class="app-label">حاسبة</span></div>
         <div class="app-icon" onclick="openTool('tool-timer')"><div class="icon-box bg-red-500/20 border-red-500/30"><i data-lucide="timer" class="w-8 h-8 text-red-400"></i></div><span class="app-label">مؤقت</span></div>
         <div class="app-icon" onclick="openTool('tool-qr')"><div class="icon-box bg-gray-500/20 border-gray-500/30"><i data-lucide="qr-code" class="w-8 h-8 text-gray-300"></i></div><span class="app-label">QR</span></div>
-        <div class="app-icon" onclick="openTool('tool-chat')"><div class="icon-box bg-indigo-500/20 border-indigo-500/30"><i data-lucide="message-circle" class="w-8 h-8 text-indigo-400"></i></div><span class="app-label">الدعم</span></div>
+        <!-- تم نقل الدعم ليكون جزءاً من الصف إذا زاد العدد أو يمكن إضافته إذا لزم الأمر -->
+        <!-- <div class="app-icon" onclick="openTool('tool-chat')"><div class="icon-box bg-indigo-500/20 border-indigo-500/30"><i data-lucide="message-circle" class="w-8 h-8 text-indigo-400"></i></div><span class="app-label">الدعم</span></div> -->
     </div>
 
     <!-- ================= أدوات المنصة ================= -->
 
-    <!-- 1. لوحة الرسم (بديل المحرر) -->
+    <!-- 1. لوحة الرسم -->
     <div id="tool-whiteboard" class="tool-view">
         <div class="tool-header">
             <h2 class="text-white font-bold flex items-center gap-2"><i data-lucide="pen-tool" class="w-5 h-5 text-amber-400"></i> لوحة الرسم</h2>
@@ -196,7 +218,6 @@
         </div>
         <div class="relative flex-1 bg-white overflow-hidden">
             <canvas id="whiteboard-canvas"></canvas>
-            <!-- شريط أدوات الرسم -->
             <div class="wb-toolbar">
                 <div class="color-dot bg-black active" onclick="setPenColor('black', this)"></div>
                 <div class="color-dot bg-red-500" onclick="setPenColor('red', this)"></div>
@@ -209,80 +230,87 @@
         </div>
     </div>
 
-    <!-- 2. Image to PDF (Iframe) -->
-    <div id="tool-img-pdf" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">صور PDF</h2><button onclick="closeTool('tool-img-pdf')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/hello/" class="iframe-full" allow="camera"></iframe></div>
+    <!-- أداة الترفيه (جديدة) -->
+    <div id="tool-games" class="tool-view">
+        <div class="tool-header">
+            <h2 class="text-white font-bold flex items-center gap-2">
+                <i data-lucide="gamepad-2" class="w-5 h-5 text-fuchsia-400"></i> منطقة الألعاب
+            </h2>
+            <button onclick="closeGameTool()" class="text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        
+        <!-- قائمة الألعاب -->
+        <div id="games-menu" class="flex-1 p-6 overflow-y-auto">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- لعبة حرب الفضاء -->
+                <div class="game-card" onclick="playGame('https://engineeralii.github.io/SPACE/')">
+                    <div class="game-icon-wrapper">
+                        <i data-lucide="rocket" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="text-white font-bold text-sm mt-2">حرب الفضاء</h3>
+                    <p class="text-xs text-white/40">دافع عن المجرة!</p>
+                </div>
+                
+                <!-- مكان لإضافة المزيد -->
+                <div class="game-card opacity-50 cursor-default border-dashed border-white/10 hover:transform-none">
+                    <div class="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
+                        <i data-lucide="plus" class="w-6 h-6 text-white/30"></i>
+                    </div>
+                    <h3 class="text-white/50 font-bold text-sm mt-2">قريباً...</h3>
+                </div>
+            </div>
+        </div>
 
-    <!-- 3. Notes (Iframe) -->
-    <div id="tool-notes" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الملاحظات</h2><button onclick="closeTool('tool-notes')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/ALI/" class="iframe-full"></iframe></div>
-
-    <!-- 4. ToDo (Iframe - NEW LINK) -->
-    <div id="tool-todo" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">المهام</h2><button onclick="closeTool('tool-todo')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://thoughtful-aquamarine-z33zjrd35t.edgeone.dev/" class="iframe-full"></iframe></div>
-
-    <!-- 5. Quiz (Iframe) -->
-    <div id="tool-quiz" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الاختبارات</h2><button onclick="closeTool('tool-quiz')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/BN/" class="iframe-full"></iframe></div>
-
-    <!-- 6. Calculator (Iframe) -->
-    <div id="tool-calc" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الحاسبة</h2><button onclick="closeTool('tool-calc')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/cl/" class="iframe-full"></iframe></div>
-
-    <!-- 7. Timer (Iframe) -->
-    <div id="tool-timer" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">المؤقت</h2><button onclick="closeTool('tool-timer')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/timer/" class="iframe-full"></iframe></div>
-
-    <!-- 8. QR (Iframe) -->
-    <div id="tool-qr" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">ماسح QR</h2><button onclick="closeTool('tool-qr')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/qr0/" class="iframe-full" allow="camera"></iframe></div>
-
-    <!-- 9. Chat (Native) -->
-    <div id="tool-chat" class="tool-view">
-        <div class="tool-header"><h2 class="text-lg font-bold text-white">الدعم الفني</h2><button onclick="closeTool('tool-chat')"><i data-lucide="x" class="text-white"></i></button></div>
-        <div id="chat-box" class="flex-1 p-4 bg-[#121212] overflow-y-auto space-y-3"><div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white"><i data-lucide="bot" class="w-4 h-4"></i></div><div class="bg-white/10 p-3 rounded-lg text-sm">مرحباً بك، كيف يمكنني مساعدتك؟</div></div></div>
-        <div class="p-4 bg-slate-900 border-t border-white/10 flex gap-2"><input id="chat-input" class="glass-input flex-1 p-3 rounded-lg text-right" placeholder="اكتب..."><button onclick="sendMsg()" class="bg-blue-600 text-white p-3 rounded-lg"><i data-lucide="send"></i></button></div>
+        <!-- إطار تشغيل اللعبة (مخفي افتراضياً) -->
+        <div id="game-player" class="hidden flex-1 bg-black relative">
+            <iframe id="game-frame" class="w-full h-full border-0"></iframe>
+            <button onclick="stopGame()" class="absolute top-4 right-4 bg-red-600 hover:bg-red-500 text-white p-2 rounded-full shadow-lg z-50">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
     </div>
+
+    <!-- باقي الأدوات (Iframe) -->
+    <div id="tool-img-pdf" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">صور PDF</h2><button onclick="closeTool('tool-img-pdf')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/hello/" class="iframe-full" allow="camera"></iframe></div>
+    <div id="tool-notes" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الملاحظات</h2><button onclick="closeTool('tool-notes')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/ALI/" class="iframe-full"></iframe></div>
+    <div id="tool-todo" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">المهام</h2><button onclick="closeTool('tool-todo')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://thoughtful-aquamarine-z33zjrd35t.edgeone.dev/" class="iframe-full"></iframe></div>
+    <div id="tool-quiz" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الاختبارات</h2><button onclick="closeTool('tool-quiz')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/BN/" class="iframe-full"></iframe></div>
+    <div id="tool-calc" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">الحاسبة</h2><button onclick="closeTool('tool-calc')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/cl/" class="iframe-full"></iframe></div>
+    <div id="tool-timer" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">المؤقت</h2><button onclick="closeTool('tool-timer')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/timer/" class="iframe-full"></iframe></div>
+    <div id="tool-qr" class="tool-view"><div class="tool-header"><h2 class="text-white font-bold">ماسح QR</h2><button onclick="closeTool('tool-qr')"><i data-lucide="x" class="text-white"></i></button></div><iframe src="https://engineeralii.github.io/qr0/" class="iframe-full" allow="camera"></iframe></div>
+    <div id="tool-chat" class="tool-view"><div class="tool-header"><h2 class="text-lg font-bold text-white">الدعم الفني</h2><button onclick="closeTool('tool-chat')"><i data-lucide="x" class="text-white"></i></button></div><div id="chat-box" class="flex-1 p-4 bg-[#121212] overflow-y-auto space-y-3"><div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white"><i data-lucide="bot" class="w-4 h-4"></i></div><div class="bg-white/10 p-3 rounded-lg text-sm">مرحباً بك، كيف يمكنني مساعدتك؟</div></div></div><div class="p-4 bg-slate-900 border-t border-white/10 flex gap-2"><input id="chat-input" class="glass-input flex-1 p-3 rounded-lg text-right" placeholder="اكتب..."><button onclick="sendMsg()" class="bg-blue-600 text-white p-3 rounded-lg"><i data-lucide="send"></i></button></div></div>
 
     <script>
         function init() {
             lucide.createIcons();
             updateClock(); setInterval(updateClock, 1000);
             typeWriterLoop();
-            initWhiteboard(); // تهيئة لوحة الرسم
+            initWhiteboard();
         }
         
         // --- الساعة (12 ساعة) ---
         function updateClock() {
             const now = new Date();
             const options = { hour: 'numeric', minute: '2-digit', hour12: true };
-            // تخصيص التنسيق للعربية ليكون "9:30 م"
-            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', options)
-                .replace("AM", "")
-                .replace("PM", "");
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', options).replace("AM", "").replace("PM", "");
             document.getElementById('date').innerText = now.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
         }
 
-        // --- الكتابة المتحركة (محسنة) ---
+        // --- الكتابة المتحركة ---
         const typeTexts = ["خدماتي", "رفيق الطالب الذكي"];
         let typeIndex = 0, charIndex = 0, isDeleting = false;
         const typeElement = document.getElementById('typewriter-text');
 
         function typeWriterLoop() {
             const currentText = typeTexts[typeIndex];
-            
             if (isDeleting) {
-                typeElement.innerText = currentText.substring(0, charIndex - 1);
-                charIndex--;
+                typeElement.innerText = currentText.substring(0, charIndex - 1); charIndex--;
             } else {
-                typeElement.innerText = currentText.substring(0, charIndex + 1);
-                charIndex++;
+                typeElement.innerText = currentText.substring(0, charIndex + 1); charIndex++;
             }
-
-            let speed = isDeleting ? 40 : 100; // سرعة الكتابة والحذف
-
-            if (!isDeleting && charIndex === currentText.length) {
-                speed = 3000; // انتظار طويل بعد اكتمال الكلمة
-                isDeleting = true;
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                typeIndex = (typeIndex + 1) % typeTexts.length;
-                speed = 500;
-            }
-
+            let speed = isDeleting ? 40 : 100;
+            if (!isDeleting && charIndex === currentText.length) { speed = 3000; isDeleting = true; }
+            else if (isDeleting && charIndex === 0) { isDeleting = false; typeIndex = (typeIndex + 1) % typeTexts.length; speed = 500; }
             setTimeout(typeWriterLoop, speed);
         }
 
@@ -291,26 +319,48 @@
             document.getElementById('app-drawer').classList.toggle('active');
             document.getElementById('launcher').classList.toggle('open');
         }
-
         function openTool(id) {
             document.getElementById(id).classList.add('active');
             toggleDrawer();
         }
-
         function closeTool(id) {
             document.getElementById(id).classList.remove('active');
         }
+        function reloadFrame(id) { document.getElementById(id).src = document.getElementById(id).src; }
 
-        // --- لوحة الرسم (Whiteboard Logic) ---
+        // --- أداة الألعاب (جديدة) ---
+        function playGame(url) {
+            const menu = document.getElementById('games-menu');
+            const player = document.getElementById('game-player');
+            const frame = document.getElementById('game-frame');
+            
+            menu.classList.add('hidden');
+            player.classList.remove('hidden');
+            frame.src = url;
+        }
+
+        function stopGame() {
+            const menu = document.getElementById('games-menu');
+            const player = document.getElementById('game-player');
+            const frame = document.getElementById('game-frame');
+            
+            frame.src = ''; // إيقاف اللعبة
+            player.classList.add('hidden');
+            menu.classList.remove('hidden');
+        }
+
+        function closeGameTool() {
+            stopGame(); // تأكد من إيقاف اللعبة أولاً
+            closeTool('tool-games');
+        }
+
+        // --- لوحة الرسم ---
         let canvas, ctx, painting = false, penColor = 'black', toolType = 'pen';
-
         function initWhiteboard() {
             canvas = document.getElementById('whiteboard-canvas');
             ctx = canvas.getContext('2d');
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
-            
-            // Events
             canvas.addEventListener('mousedown', startPosition);
             canvas.addEventListener('mouseup', finishedPosition);
             canvas.addEventListener('mousemove', draw);
@@ -318,60 +368,30 @@
             canvas.addEventListener('touchend', finishedPosition);
             canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
         }
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        function startPosition(e) {
-            painting = true;
-            draw(e);
-        }
-
-        function finishedPosition() {
-            painting = false;
-            ctx.beginPath();
-        }
-
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        function startPosition(e) { painting = true; draw(e); }
+        function finishedPosition() { painting = false; ctx.beginPath(); }
         function draw(e) {
             if (!painting) return;
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
+            const x = e.clientX - rect.left; const y = e.clientY - rect.top;
             ctx.lineWidth = toolType === 'eraser' ? 20 : 3;
             ctx.lineCap = 'round';
             ctx.strokeStyle = toolType === 'eraser' ? '#ffffff' : penColor;
-
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+            ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
         }
-
         function setPenColor(color, el) {
-            penColor = color;
-            toolType = 'pen';
+            penColor = color; toolType = 'pen';
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-            el.classList.add('active');
-            updateToolUI();
+            el.classList.add('active'); updateToolUI();
         }
-
-        function setTool(tool, el) {
-            toolType = tool;
-            updateToolUI();
-        }
-
+        function setTool(tool, el) { toolType = tool; updateToolUI(); }
         function updateToolUI() {
             document.querySelectorAll('.wb-btn').forEach(b => b.classList.remove('active'));
             if (toolType === 'eraser') document.querySelector('button[title="ممحاة"]').classList.add('active');
             else document.querySelector('button[title="قلم"]').classList.add('active');
         }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
         // --- Chat ---
         async function sendMsg() {
